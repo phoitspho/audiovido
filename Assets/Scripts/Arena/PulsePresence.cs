@@ -26,6 +26,7 @@ public class PulsePresence : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         float beat = Time.time * (bpm / 60f);
         // Sharp bounce locked to the beat — PULSE is "always moving" (spec)
         float bounce = Mathf.Abs(Mathf.Sin(beat * Mathf.PI));

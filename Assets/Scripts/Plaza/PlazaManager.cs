@@ -70,6 +70,7 @@ public class PlazaManager : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         _wavePulse = Mathf.MoveTowards(_wavePulse, 0f, Time.deltaTime * 1.2f);
 
         // Hologram: slow rotation, gentle bob, flickery glow

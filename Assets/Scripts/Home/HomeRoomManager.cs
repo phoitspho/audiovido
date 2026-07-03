@@ -57,6 +57,7 @@ public class HomeRoomManager : MonoBehaviour
     IEnumerator Start()
     {
         NxtEarnManager.Instance?.StartEarning();
+        AudioManager.Instance?.Play("home_chill", 0.55f);
         yield return FadeIn();
         ui?.SetNowPlaying(trackTitle, _musicPlaying);
         ui?.SetThemeName(_themes[_themeIndex].name);
@@ -64,6 +65,7 @@ public class HomeRoomManager : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         // Record spins while music plays
         if (recordDisc != null && _musicPlaying)
             recordDisc.Rotate(0f, discSpinSpeed * Time.deltaTime, 0f, Space.Self);
@@ -92,6 +94,8 @@ public class HomeRoomManager : MonoBehaviour
     public void ToggleMusic()
     {
         _musicPlaying = !_musicPlaying;
+        if (_musicPlaying) AudioManager.Instance?.ResumeMusic();
+        else AudioManager.Instance?.PauseMusic();
         ui?.SetNowPlaying(trackTitle, _musicPlaying);
     }
 

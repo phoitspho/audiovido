@@ -45,6 +45,7 @@ public class CinemaManager : MonoBehaviour
     IEnumerator Start()
     {
         NxtEarnManager.Instance?.StartEarning();
+        AudioManager.Instance?.Play("cinema_score", 0.5f);
         yield return FadeIn();
         State = CinemaState.Watching;
         ui?.SetNowShowing(featureTitle, true);
@@ -53,6 +54,7 @@ public class CinemaManager : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         if (screenRenderer == null) return;
 
         // Fake film projection — drifting warm/cool tint with luminance flicker.
@@ -79,12 +81,14 @@ public class CinemaManager : MonoBehaviour
         if (State == CinemaState.Watching)
         {
             State = CinemaState.Paused;
+            AudioManager.Instance?.PauseMusic();
             ui?.SetNowShowing(featureTitle, false);
             ui?.ShowNovaLine("Taking a quick break?"); // spec §5.11.2 NOVA on pause
         }
         else if (State == CinemaState.Paused)
         {
             State = CinemaState.Watching;
+            AudioManager.Instance?.ResumeMusic();
             ui?.SetNowShowing(featureTitle, true);
             ui?.ShowNovaLine("And... we're rolling again.");
         }

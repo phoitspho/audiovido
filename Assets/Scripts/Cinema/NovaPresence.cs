@@ -27,6 +27,7 @@ public class NovaPresence : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         transform.localPosition = _basePos +
             Vector3.up * (Mathf.Sin(Time.time * bobSpeed) * bobAmount);
 

@@ -56,6 +56,7 @@ public class LoungeManager : MonoBehaviour
     IEnumerator Start()
     {
         StartAmbientAudio();
+        AudioManager.Instance?.Play("lounge_lofi", 0.5f);
 
         // Start passive NXT earn
         NxtEarnManager.Instance?.StartEarning();

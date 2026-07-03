@@ -77,6 +77,7 @@ public class ArenaManager : MonoBehaviour
         }
 
         NxtEarnManager.Instance?.StartEarning();
+        AudioManager.Instance?.Play("arena_club", 0.6f);
         yield return FadeIn();
 
         // PULSE countdown (spec §5.12: "3... 2... 1... LET'S GO!")
@@ -101,21 +102,32 @@ public class ArenaManager : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         float beat = Time.time * (bpm / 60f);
         _hypeBoost = Mathf.MoveTowards(_hypeBoost, 1f, Time.deltaTime * 0.8f);
         bool live = State == ArenaState.Live;
 
-        // Visualizer bars — beat-locked pseudo-spectrum
+        // Visualizer bars — REAL spectrum when audio plays (FFT bands),
+        // beat-locked pseudo-spectrum as fallback.
+        bool haveAudio = AudioManager.Instance != null && AudioManager.Instance.IsPlaying;
         if (visualizerBars != null)
         {
             for (int i = 0; i < visualizerBars.Length; i++)
             {
                 Transform bar = visualizerBars[i];
                 if (bar == null) continue;
-                float pulse = Mathf.Abs(Mathf.Sin(beat * Mathf.PI + _barPhases[i]));
-                float noise = Mathf.PerlinNoise(Time.time * 1.3f, i * 3.7f);
+                float energy;
+                if (haveAudio)
+                {
+                    energy = AudioManager.Instance.GetBandEnergy(i, visualizerBars.Length);
+                }
+                else
+                {
+                    float pulse = Mathf.Abs(Mathf.Sin(beat * Mathf.PI + _barPhases[i]));
+                    energy = pulse * Mathf.PerlinNoise(Time.time * 1.3f, i * 3.7f);
+                }
                 float h = barBaseHeight +
-                    (live ? pulse * noise * barMaxExtra * _hypeBoost : 0.15f);
+                    (live ? energy * barMaxExtra * _hypeBoost : 0.15f);
                 Vector3 s = bar.localScale;
                 bar.localScale = new Vector3(s.x, h, s.z);
                 Vector3 p = bar.localPosition;
@@ -137,16 +149,19 @@ public class ArenaManager : MonoBehaviour
             }
         }
 
-        // Crowd bob — everyone slightly out of phase; jumps higher on hype
+        // Crowd bob — bass energy drives amplitude when audio plays
         if (crowdMembers != null)
         {
+            float bassBoost = haveAudio
+                ? 0.6f + AudioManager.Instance.GetBandEnergy(0, 9) * 1.2f
+                : 1f;
             for (int i = 0; i < crowdMembers.Length; i++)
             {
                 Transform member = crowdMembers[i];
                 if (member == null) continue;
                 float bob = live
                     ? Mathf.Abs(Mathf.Sin(beat * Mathf.PI * 0.5f + _crowdPhases[i]))
-                        * crowdBobHeight * _hypeBoost
+                        * crowdBobHeight * _hypeBoost * bassBoost
                     : 0f;
                 member.localPosition = _crowdBasePos[i] + Vector3.up * bob;
             }

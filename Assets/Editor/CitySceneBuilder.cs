@@ -362,6 +362,22 @@ public static class CitySceneBuilder
         GameObject nxtObj = new GameObject("NxtEarnManager");
         nxtObj.AddComponent<NxtEarnManager>();
 
+        // Persistent music player with the sample tracks (placeholder catalog
+        // until the content API is live)
+        GameObject audioObj = new GameObject("AudioManager");
+        AudioManager audioMgr = audioObj.AddComponent<AudioManager>();
+        string[] trackFiles =
+        {
+            "city_ambient", "lounge_lofi", "arena_club", "home_chill", "cinema_score"
+        };
+        SerializedObject aso = new SerializedObject(audioMgr);
+        SerializedProperty clipsProp = aso.FindProperty("clips");
+        clipsProp.arraySize = trackFiles.Length;
+        for (int i = 0; i < trackFiles.Length; i++)
+            clipsProp.GetArrayElementAtIndex(i).objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<AudioClip>($"Assets/Audio/{trackFiles[i]}.wav");
+        aso.ApplyModifiedPropertiesWithoutUndo();
+
         GameObject es = new GameObject("EventSystem");
         es.AddComponent<UnityEngine.EventSystems.EventSystem>();
         es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();

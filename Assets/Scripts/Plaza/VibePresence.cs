@@ -26,6 +26,7 @@ public class VibePresence : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         float bounce = Mathf.Abs(Mathf.Sin(Time.time * bounceSpeed));
         transform.localPosition = _basePos + Vector3.up * (bounce * bounceHeight);
 

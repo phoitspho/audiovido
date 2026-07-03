@@ -42,6 +42,8 @@ public class CityManager : MonoBehaviour
         enterButton?.onClick.AddListener(OnEnterPressed);
         backButton?.onClick.AddListener(OnBackPressed);
 
+        AudioManager.Instance?.Play("city_ambient", 0.4f);
+
         UpdateNxt(NxtEarnManager.Instance != null ? NxtEarnManager.Instance.Balance : 0, 0);
         NxtEarnManager.OnNxtChanged += UpdateNxt;
 

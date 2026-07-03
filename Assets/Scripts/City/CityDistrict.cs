@@ -38,6 +38,7 @@ public class CityDistrict : MonoBehaviour
 
     void Update()
     {
+        if (_mpb == null) _mpb = new MaterialPropertyBlock(); // survives domain reload
         // Neon pulse
         if (glowRenderers != null && glowRenderers.Length > 0)
         {
