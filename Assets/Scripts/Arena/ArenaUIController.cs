@@ -34,6 +34,17 @@ public class ArenaUIController : MonoBehaviour
         if (nowPlayingText) nowPlayingText.raycastTarget = false;
         if (pulseMessageText) pulseMessageText.raycastTarget = false;
         if (pulseBubbleRoot) pulseBubbleRoot.SetActive(false);
+
+        // AI chat with PULSE (spec §4.2) — button added at runtime, no rebuild
+        if (hypeButton != null)
+        {
+            CharacterProfile pulse = CharacterProfiles.Get("pulse");
+            Button chat = ChatSheetController.AddChatButton(
+                hypeButton.transform.parent as RectTransform,
+                new Vector2(-132f, 0f), new Vector2(66f, 40f), pulse.accent);
+            chat.onClick.AddListener(() => ChatSheetController.Open(
+                "pulse", GetComponentInParent<Canvas>(), "arena/live"));
+        }
     }
 
     public void SetNowPlaying(string track)

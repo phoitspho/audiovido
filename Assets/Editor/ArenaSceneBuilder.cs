@@ -124,35 +124,26 @@ public static class ArenaSceneBuilder
             barRs[i] = bar.GetComponent<MeshRenderer>();
         }
 
-        // ── PULSE (stage front) ──────────────────────────────────────────────
-        GameObject pulse = new GameObject("PULSE_Character");
-        pulse.transform.position = new Vector3(-4.5f, 1f, 6.8f);
+        // ── PULSE (stage front) — humanoid proxy, arms raised (art pass) ─────
+        CharacterProxyBuilder.Proxy pulseProxy = CharacterProxyBuilder.Build(
+            "PULSE_Character", new Vector3(-4.5f, 1f, 6.8f), 1.0f,
+            bodyMat, yellowMat, armsRaised: true);
+        pulseProxy.root.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
 
-        GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        body.name = "Body";
-        body.transform.SetParent(pulse.transform);
-        body.transform.localPosition = new Vector3(0f, 1.05f, 0f);
-        body.transform.localScale = new Vector3(0.8f, 1.05f, 0.8f);
-        body.GetComponent<MeshRenderer>().sharedMaterial = bodyMat;
-
-        GameObject sash = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        sash.name = "GlowSash";
-        sash.transform.SetParent(pulse.transform);
-        sash.transform.localPosition = new Vector3(0f, 1.4f, 0f);
-        sash.transform.localScale = new Vector3(0.9f, 0.12f, 0.9f);
-        sash.GetComponent<MeshRenderer>().sharedMaterial = yellowMat;
-
+        // Signature LED mohawk on top of the proxy head
         GameObject mohawk = GameObject.CreatePrimitive(PrimitiveType.Cube);
         mohawk.name = "GlowMohawk";
-        mohawk.transform.SetParent(pulse.transform);
-        mohawk.transform.localPosition = new Vector3(0f, 2.25f, 0f);
-        mohawk.transform.localScale = new Vector3(0.12f, 0.35f, 0.5f);
+        mohawk.transform.SetParent(pulseProxy.root.transform);
+        mohawk.transform.localPosition = new Vector3(0f, 1.95f, 0f);
+        mohawk.transform.localScale = new Vector3(0.08f, 0.28f, 0.4f);
         mohawk.GetComponent<MeshRenderer>().sharedMaterial = yellowMat;
 
-        PulsePresence pulsePresence = pulse.AddComponent<PulsePresence>();
+        PulsePresence pulsePresence = pulseProxy.root.AddComponent<PulsePresence>();
         SerializedObject pso = new SerializedObject(pulsePresence);
         SerializedProperty pGlows = pso.FindProperty("glowRenderers");
-        Renderer[] pulseGlowRs = { sash.GetComponent<MeshRenderer>(), mohawk.GetComponent<MeshRenderer>() };
+        Renderer[] pulseGlowRs = new Renderer[pulseProxy.glowRenderers.Length + 1];
+        pulseProxy.glowRenderers.CopyTo(pulseGlowRs, 0);
+        pulseGlowRs[pulseGlowRs.Length - 1] = mohawk.GetComponent<MeshRenderer>();
         pGlows.arraySize = pulseGlowRs.Length;
         for (int g = 0; g < pulseGlowRs.Length; g++)
             pGlows.GetArrayElementAtIndex(g).objectReferenceValue = pulseGlowRs[g];

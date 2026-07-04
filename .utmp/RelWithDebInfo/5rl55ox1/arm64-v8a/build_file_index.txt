@@ -1,0 +1,2 @@
+D:\Users\Setup Guide In-Editor Tutorial (2)\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+D:\Users\Setup Guide In-Editor Tutorial (2)\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt

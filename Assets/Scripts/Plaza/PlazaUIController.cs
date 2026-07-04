@@ -34,6 +34,17 @@ public class PlazaUIController : MonoBehaviour
         if (feedText) { feedText.text = "Share. Belong. Inspire."; feedText.raycastTarget = false; }
         if (vibeMessageText) vibeMessageText.raycastTarget = false;
         if (vibeBubbleRoot) vibeBubbleRoot.SetActive(false);
+
+        // AI chat with VIBE (spec §4.2) — button added at runtime, no rebuild
+        if (waveButton != null)
+        {
+            CharacterProfile vibe = CharacterProfiles.Get("vibe");
+            Button chat = ChatSheetController.AddChatButton(
+                waveButton.transform.parent as RectTransform,
+                new Vector2(-122f, 0f), new Vector2(66f, 40f), vibe.accent);
+            chat.onClick.AddListener(() => ChatSheetController.Open(
+                "vibe", GetComponentInParent<Canvas>(), "plaza/social"));
+        }
     }
 
     public void SetFeedLine(string line)

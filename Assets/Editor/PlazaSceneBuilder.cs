@@ -108,44 +108,17 @@ public static class PlazaSceneBuilder
         ring.transform.localScale = new Vector3(4.6f, 0.05f, 4.6f);
         ring.GetComponent<MeshRenderer>().sharedMaterial = ringMat;
 
-        // ── Hologram figure (rotating, spec/concept: giant blue hologram) ────
+        // ── Hologram figure — giant humanoid proxy, arms raised (art pass) ───
         GameObject holoRoot = new GameObject("HologramRoot");
         holoRoot.transform.SetParent(plaza.transform);
-        holoRoot.transform.position = new Vector3(0f, 3.6f, 5f);
+        holoRoot.transform.position = new Vector3(0f, 0.75f, 5f); // stands on pedestal
 
-        GameObject holoBody = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        holoBody.name = "HoloBody";
-        holoBody.transform.SetParent(holoRoot.transform);
-        holoBody.transform.localPosition = Vector3.zero;
-        holoBody.transform.localScale = new Vector3(1.6f, 2.2f, 1.6f);
-        holoBody.GetComponent<MeshRenderer>().sharedMaterial = holoMat;
-        Object.DestroyImmediate(holoBody.GetComponent<Collider>());
-
-        GameObject holoHead = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        holoHead.name = "HoloHead";
-        holoHead.transform.SetParent(holoRoot.transform);
-        holoHead.transform.localPosition = new Vector3(0f, 2.9f, 0f);
-        holoHead.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
-        holoHead.GetComponent<MeshRenderer>().sharedMaterial = holoMat;
-        Object.DestroyImmediate(holoHead.GetComponent<Collider>());
-
-        GameObject holoArmL = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        holoArmL.name = "HoloArm_L";
-        holoArmL.transform.SetParent(holoRoot.transform);
-        holoArmL.transform.localPosition = new Vector3(-1.3f, 0.8f, 0f);
-        holoArmL.transform.localRotation = Quaternion.Euler(0f, 0f, 40f);
-        holoArmL.transform.localScale = new Vector3(0.45f, 1.1f, 0.45f);
-        holoArmL.GetComponent<MeshRenderer>().sharedMaterial = holoMat;
-        Object.DestroyImmediate(holoArmL.GetComponent<Collider>());
-
-        GameObject holoArmR = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        holoArmR.name = "HoloArm_R";
-        holoArmR.transform.SetParent(holoRoot.transform);
-        holoArmR.transform.localPosition = new Vector3(1.3f, 0.8f, 0f);
-        holoArmR.transform.localRotation = Quaternion.Euler(0f, 0f, -40f);
-        holoArmR.transform.localScale = new Vector3(0.45f, 1.1f, 0.45f);
-        holoArmR.GetComponent<MeshRenderer>().sharedMaterial = holoMat;
-        Object.DestroyImmediate(holoArmR.GetComponent<Collider>());
+        CharacterProxyBuilder.Proxy holoProxy = CharacterProxyBuilder.Build(
+            "HoloFigure", holoRoot.transform.position, 2.4f, holoMat, holoMat,
+            armsRaised: true);
+        holoProxy.root.transform.SetParent(holoRoot.transform, true);
+        foreach (Collider c in holoProxy.root.GetComponentsInChildren<Collider>())
+            Object.DestroyImmediate(c);
 
         // ── Surrounding buildings with CONNECT signage ───────────────────────
         MakeBox(plaza, "Bldg_L", new Vector3(-9f, 4f, 8f), new Vector3(5f, 8f, 5f), buildingMat);
@@ -348,13 +321,7 @@ public static class PlazaSceneBuilder
         mso.FindProperty("fadeCanvas").objectReferenceValue = fadeCG;
 
         SerializedProperty holos = mso.FindProperty("hologramRenderers");
-        Renderer[] holoRs =
-        {
-            holoBody.GetComponent<MeshRenderer>(),
-            holoHead.GetComponent<MeshRenderer>(),
-            holoArmL.GetComponent<MeshRenderer>(),
-            holoArmR.GetComponent<MeshRenderer>()
-        };
+        Renderer[] holoRs = holoProxy.root.GetComponentsInChildren<Renderer>();
         holos.arraySize = holoRs.Length;
         for (int i = 0; i < holoRs.Length; i++)
             holos.GetArrayElementAtIndex(i).objectReferenceValue = holoRs[i];

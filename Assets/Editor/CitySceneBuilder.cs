@@ -81,6 +81,15 @@ public static class CitySceneBuilder
         Material plazaMat    = MakeMat("City_Plaza",    Hex("0E0E16"), CYAN, 1.2f);
         Material skylineMat  = MakeMat("City_Skyline",  BUILDING, Hex("1E3A5F"), 0.8f);
 
+        // Art pass: procedural lit-window facades (Assets/Textures/City)
+        Material[] facadeMats =
+        {
+            MakeTexMat("City_FacadeCool",   "Assets/Textures/City/facade_cool.png"),
+            MakeTexMat("City_FacadeWarm",   "Assets/Textures/City/facade_warm.png"),
+            MakeTexMat("City_FacadeViolet", "Assets/Textures/City/facade_violet.png"),
+        };
+        Material roadMat = MakeMat("City_Road", Color.black, new Color(0f, 0.83f, 1f), 0.9f);
+
         // ── World root (hidden while inside a 3D space) ──────────────────────
         GameObject worldRoot = new GameObject("CityWorld");
 
@@ -142,13 +151,29 @@ public static class CitySceneBuilder
 
             Material glowMat = MakeMat("City_Glow_" + i, Hex("101018"), accent, 2f);
 
-            // Main tower
+            // Main tower — lit-window facade (art pass)
+            Material facade = facadeMats[i % facadeMats.Length];
             GameObject tower = GameObject.CreatePrimitive(PrimitiveType.Cube);
             tower.name = "Tower";
             tower.transform.SetParent(root.transform);
             tower.transform.localPosition = new Vector3(0f, h / 2f, 0f);
             tower.transform.localScale = new Vector3(4.5f, h, 4.5f);
-            tower.GetComponent<MeshRenderer>().sharedMaterial = buildingMat;
+            tower.GetComponent<MeshRenderer>().sharedMaterial = facade;
+
+            // Setback top block + antenna spire
+            GameObject top = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            top.name = "TowerTop";
+            top.transform.SetParent(root.transform);
+            top.transform.localPosition = new Vector3(0f, h + 0.9f, 0f);
+            top.transform.localScale = new Vector3(3f, 1.8f, 3f);
+            top.GetComponent<MeshRenderer>().sharedMaterial = facade;
+
+            GameObject antenna = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            antenna.name = "Antenna";
+            antenna.transform.SetParent(root.transform);
+            antenna.transform.localPosition = new Vector3(0f, h + 2.9f, 0f);
+            antenna.transform.localScale = new Vector3(0.12f, 2.2f, 0.12f);
+            antenna.GetComponent<MeshRenderer>().sharedMaterial = glowMat;
 
             // Side block
             GameObject side = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -156,7 +181,7 @@ public static class CitySceneBuilder
             side.transform.SetParent(root.transform);
             side.transform.localPosition = new Vector3(3.6f, h * 0.22f, 0.8f);
             side.transform.localScale = new Vector3(2.6f, h * 0.44f, 2.6f);
-            side.GetComponent<MeshRenderer>().sharedMaterial = buildingMat;
+            side.GetComponent<MeshRenderer>().sharedMaterial = facadeMats[(i + 1) % facadeMats.Length];
 
             // Neon band around tower
             GameObject band = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -231,7 +256,9 @@ public static class CitySceneBuilder
             t.transform.SetParent(skylineRoot.transform);
             t.transform.position = new Vector3(Mathf.Sin(ang) * r, h / 2f, Mathf.Cos(ang) * r);
             t.transform.localScale = new Vector3(w, h, w);
-            t.GetComponent<MeshRenderer>().sharedMaterial = buildingMat;
+            // Half the skyline gets lit facades, rest stays dark mass
+            t.GetComponent<MeshRenderer>().sharedMaterial =
+                rng.NextDouble() < 0.55 ? facadeMats[rng.Next(facadeMats.Length)] : buildingMat;
             Object.DestroyImmediate(t.GetComponent<Collider>()); // not tappable
 
             GameObject glow = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -242,6 +269,66 @@ public static class CitySceneBuilder
             glow.GetComponent<MeshRenderer>().sharedMaterial = skylineMat;
             Object.DestroyImmediate(glow.GetComponent<Collider>());
         }
+
+        // ── Roads: glow lanes radiating plaza → districts + ambient traffic ──
+        GameObject roadsRoot = new GameObject("Roads");
+        roadsRoot.transform.SetParent(worldRoot.transform);
+        for (int i = 0; i < districtCount; i++)
+        {
+            float angle = i * angleStep * Mathf.Deg2Rad;
+            Vector3 dir = new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle));
+            GameObject lane = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            lane.name = "Lane_" + i;
+            lane.transform.SetParent(roadsRoot.transform);
+            lane.transform.position = dir * 12.5f + Vector3.up * 0.02f;
+            lane.transform.rotation = Quaternion.LookRotation(dir);
+            lane.transform.localScale = new Vector3(0.25f, 0.03f, 14f);
+            lane.GetComponent<MeshRenderer>().sharedMaterial = roadMat;
+            Object.DestroyImmediate(lane.GetComponent<Collider>());
+        }
+
+        // Flying vehicles (concept art traffic)
+        GameObject trafficRoot = new GameObject("Traffic");
+        trafficRoot.transform.SetParent(worldRoot.transform);
+        Material trafficWarm = MakeMat("City_TrafficWarm", Color.black, new Color(1f, 0.6f, 0.25f), 2.5f);
+        Material trafficCool = MakeMat("City_TrafficCool", Color.black, new Color(0.3f, 0.8f, 1f), 2.5f);
+        for (int i = 0; i < 7; i++)
+        {
+            GameObject v = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            v.name = "Vehicle_" + i;
+            v.transform.SetParent(trafficRoot.transform);
+            v.transform.localScale = new Vector3(0.35f, 0.12f, 1.1f);
+            v.GetComponent<MeshRenderer>().sharedMaterial = i % 2 == 0 ? trafficCool : trafficWarm;
+            Object.DestroyImmediate(v.GetComponent<Collider>());
+
+            HoverVehicle hv = v.AddComponent<HoverVehicle>();
+            SerializedObject hso = new SerializedObject(hv);
+            hso.FindProperty("radius").floatValue = 24f + (float)rng.NextDouble() * 16f;
+            hso.FindProperty("height").floatValue = 9f + (float)rng.NextDouble() * 8f;
+            hso.FindProperty("angularSpeed").floatValue = 0.12f + (float)rng.NextDouble() * 0.18f;
+            hso.FindProperty("phase").floatValue = (float)(rng.NextDouble() * Mathf.PI * 2.0);
+            hso.FindProperty("clockwise").boolValue = i % 2 == 0;
+            hso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Ambient light motes drifting over the plaza
+        GameObject motesObj = new GameObject("LightMotes");
+        motesObj.transform.SetParent(worldRoot.transform);
+        motesObj.transform.position = new Vector3(0f, 4f, 0f);
+        ParticleSystem motes = motesObj.AddComponent<ParticleSystem>();
+        ParticleSystem.MainModule main = motes.main;
+        main.startColor = new Color(0.4f, 0.85f, 1f, 0.35f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.04f, 0.14f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.15f, 0.5f);
+        main.startLifetime = new ParticleSystem.MinMaxCurve(6f, 12f);
+        main.maxParticles = 260;
+        ParticleSystem.EmissionModule emission = motes.emission;
+        emission.rateOverTime = 22f;
+        ParticleSystem.ShapeModule shape = motes.shape;
+        shape.shapeType = ParticleSystemShapeType.Box;
+        shape.scale = new Vector3(50f, 8f, 50f);
+        ParticleSystemRenderer moteRenderer = motesObj.GetComponent<ParticleSystemRenderer>();
+        moteRenderer.sharedMaterial = MakeMat("City_Motes", Color.black, new Color(0.4f, 0.85f, 1f), 1.4f);
 
         // ── Post-processing (bloom = the neon look) ──────────────────────────
         GameObject volObj = new GameObject("PostFX");
@@ -441,6 +528,20 @@ public static class CitySceneBuilder
             m.SetColor("_BaseColor", baseColor);
             m.SetFloat("_Smoothness", 0.45f);
         }
+        AssetDatabase.CreateAsset(m, path);
+        return m;
+    }
+
+    /// <summary>Unlit textured material (lit-window facades read as emissive at night).</summary>
+    static Material MakeTexMat(string name, string texturePath)
+    {
+        string path = $"{MAT_DIR}/{name}.mat";
+        AssetDatabase.DeleteAsset(path);
+        Material m = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+        Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        if (tex != null) m.SetTexture("_BaseMap", tex);
+        else Debug.LogWarning($"[CityBuilder] Texture not found: {texturePath}");
+        m.SetColor("_BaseColor", new Color(1.15f, 1.15f, 1.15f, 1f)); // slight HDR lift for bloom
         AssetDatabase.CreateAsset(m, path);
         return m;
     }

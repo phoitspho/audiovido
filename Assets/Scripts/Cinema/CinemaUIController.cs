@@ -38,6 +38,19 @@ public class CinemaUIController : MonoBehaviour
         if (titleText) titleText.raycastTarget = false;
         if (nowShowingText) nowShowingText.raycastTarget = false;
         if (novaMessageText) novaMessageText.raycastTarget = false;
+
+        // AI chat with NOVA (spec §4.2) — button added at runtime, no rebuild
+        if (playPauseButton != null)
+        {
+            CharacterProfile nova = CharacterProfiles.Get("nova");
+            Button chat = ChatSheetController.AddChatButton(
+                playPauseButton.transform.parent as RectTransform,
+                new Vector2(-118f, 0f), new Vector2(66f, 40f), nova.accent);
+            chat.onClick.AddListener(() => ChatSheetController.Open(
+                "nova", GetComponentInParent<Canvas>(),
+                "cinema/" + (CinemaManager.Instance != null
+                    ? CinemaManager.Instance.State.ToString().ToLowerInvariant() : "watching")));
+        }
     }
 
     public void SetNowShowing(string title, bool playing)

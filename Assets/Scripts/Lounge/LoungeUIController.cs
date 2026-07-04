@@ -116,6 +116,15 @@ public class LoungeUIController : MonoBehaviour
         queueButton?.onClick.AddListener(OnQueueClicked);
         inviteButton?.onClick.AddListener(OnInviteClicked);
 
+        // The original build placed the action row below the visible bar —
+        // pull the buttons up into view (runtime fix, no scene rebuild).
+        foreach (Button b in new[] { queueButton, chatButton, inviteButton, sitHereButton })
+        {
+            if (b == null) continue;
+            RectTransform brt = b.GetComponent<RectTransform>();
+            brt.anchoredPosition = new Vector2(brt.anchoredPosition.x, -18f);
+        }
+
         // Mood buttons
         btnMelancholic?.onClick.AddListener(() => OnMoodSelected(MoodType.Melancholic));
         btnEnergetic?.onClick.AddListener(() => OnMoodSelected(MoodType.Energetic));
@@ -230,7 +239,8 @@ public class LoungeUIController : MonoBehaviour
         LoungeManager.Instance?.ExitLounge();
     }
     void OnSitHereClicked()   => LoungeManager.Instance?.OnPlayerApproachBar();
-    void OnChatClicked()      => Debug.Log("[LoungeUI] Chat (Phase 2)");
+    void OnChatClicked() =>
+        ChatSheetController.Open("drift", GetComponentInParent<Canvas>(), "lounge/ambient");
     void OnQueueClicked()     => Debug.Log("[LoungeUI] Queue (Phase 2)");
     void OnInviteClicked()    => Debug.Log("[LoungeUI] Invite (Phase 2)");
 

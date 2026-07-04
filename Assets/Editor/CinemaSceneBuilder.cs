@@ -129,38 +129,18 @@ public static class CinemaSceneBuilder
         MakeBox(room, "Aisle_L", new Vector3(-8.2f, 0.03f, -1f), new Vector3(0.15f, 0.05f, 14f), goldMat);
         MakeBox(room, "Aisle_R", new Vector3(8.2f, 0.03f, -1f), new Vector3(0.15f, 0.05f, 14f), goldMat);
 
-        // ── NOVA (host presence, stage left) ─────────────────────────────────
-        GameObject nova = new GameObject("NOVA_Character");
-        nova.transform.position = new Vector3(-6f, 0f, 8.6f);
+        // ── NOVA (host presence, stage left) — humanoid proxy (art pass) ─────
+        CharacterProxyBuilder.Proxy novaProxy = CharacterProxyBuilder.Build(
+            "NOVA_Character", new Vector3(-6f, 0f, 8.6f), 1.05f, bodyMat, goldMat);
+        // Face the audience
+        novaProxy.root.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
 
-        GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        body.name = "Body";
-        body.transform.SetParent(nova.transform);
-        body.transform.localPosition = new Vector3(0f, 1.1f, 0f);
-        body.transform.localScale = new Vector3(0.85f, 1.1f, 0.85f);
-        body.GetComponent<MeshRenderer>().sharedMaterial = bodyMat;
-
-        GameObject sash = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        sash.name = "GlowSash";
-        sash.transform.SetParent(nova.transform);
-        sash.transform.localPosition = new Vector3(0f, 1.45f, 0f);
-        sash.transform.localScale = new Vector3(0.95f, 0.12f, 0.95f);
-        sash.GetComponent<MeshRenderer>().sharedMaterial = goldMat;
-
-        GameObject ringBase = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        ringBase.name = "GlowRing";
-        ringBase.transform.SetParent(nova.transform);
-        ringBase.transform.localPosition = new Vector3(0f, 0.03f, 0f);
-        ringBase.transform.localScale = new Vector3(1.5f, 0.03f, 1.5f);
-        ringBase.GetComponent<MeshRenderer>().sharedMaterial = goldMat;
-
-        NovaPresence novaPresence = nova.AddComponent<NovaPresence>();
+        NovaPresence novaPresence = novaProxy.root.AddComponent<NovaPresence>();
         SerializedObject nso = new SerializedObject(novaPresence);
         SerializedProperty glows = nso.FindProperty("glowRenderers");
-        Renderer[] glowRs = { sash.GetComponent<MeshRenderer>(), ringBase.GetComponent<MeshRenderer>() };
-        glows.arraySize = glowRs.Length;
-        for (int g = 0; g < glowRs.Length; g++)
-            glows.GetArrayElementAtIndex(g).objectReferenceValue = glowRs[g];
+        glows.arraySize = novaProxy.glowRenderers.Length;
+        for (int g = 0; g < novaProxy.glowRenderers.Length; g++)
+            glows.GetArrayElementAtIndex(g).objectReferenceValue = novaProxy.glowRenderers[g];
         nso.ApplyModifiedPropertiesWithoutUndo();
 
         // ── Post-FX ──────────────────────────────────────────────────────────
