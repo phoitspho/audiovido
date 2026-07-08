@@ -201,8 +201,8 @@ public static class ArenaSceneBuilder
         canvas.sortingOrder = 10;
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(390, 844);
-        scaler.matchWidthOrHeight = 0f;
+        scaler.referenceResolution = new Vector2(844, 390);
+        scaler.matchWidthOrHeight = 1f;
         canvasObj.AddComponent<GraphicRaycaster>();
         RectTransform canvasRT = canvasObj.GetComponent<RectTransform>();
 

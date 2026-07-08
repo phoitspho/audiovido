@@ -63,9 +63,9 @@ public static class LoungeUIBuilder
 
         CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(390, 844); // iPhone 14 Pro
+        scaler.referenceResolution = new Vector2(844, 390); // iPhone 14 Pro
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        scaler.matchWidthOrHeight = 0f; // match width for phone
+        scaler.matchWidthOrHeight = 1f; // match width for phone
 
         canvasObj.AddComponent<GraphicRaycaster>();
 

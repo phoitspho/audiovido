@@ -8,7 +8,7 @@ using UnityEngine;
 /// Menu: AUDIOVIDO → Android → Configure / Build APK
 ///
 /// Settings per spec + store requirements:
-///   • Portrait-only, package com.petros.audiovido
+///   • Landscape-only, package com.petros.audiovido
 ///   • Min SDK 26 (Android 8), IL2CPP + ARM64 (modern devices)
 ///   • ASTC texture compression (URP mobile default)
 /// Output: Builds/audiovido.apk (gitignored).
@@ -34,14 +34,19 @@ public static class AndroidBuildSetup
         PlayerSettings.companyName = "Petros Entertainment";
         PlayerSettings.productName = "AUDIOVIDO";
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.petros.audiovido");
-        PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
+        // Landscape-only: auto-rotate between the two landscape orientations, portrait disabled.
+        PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+        PlayerSettings.allowedAutorotateToPortrait           = false;
+        PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+        PlayerSettings.allowedAutorotateToLandscapeLeft      = true;
+        PlayerSettings.allowedAutorotateToLandscapeRight     = true;
 
         PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26; // Android 8
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
         EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
 
-        Debug.Log("[AndroidSetup] Player settings configured (portrait, IL2CPP/ARM64, minSdk 26).");
+        Debug.Log("[AndroidSetup] Player settings configured (landscape, IL2CPP/ARM64, minSdk 26).");
     }
 
     [MenuItem("AUDIOVIDO/Android/Build APK")]
